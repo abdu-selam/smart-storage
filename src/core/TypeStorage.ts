@@ -29,6 +29,10 @@ export class TypeStorage {
 
     const keyData = typeof key === "number" ? key.toString() : key;
 
+    if (this.#checkKeyExtraction(keyData)) {
+      return this.#deepData(keyData);
+    }
+
     const hasKey = Object.keys(this.#data).includes(keyData);
     if (!hasKey) return null;
 
@@ -95,6 +99,45 @@ export class TypeStorage {
 
     const keyData = typeof key === "number" ? key.toString() : key;
     return data.includes(keyData);
+  }
+
+  #checkKeyExtraction(key: string): boolean {
+    if (this.isKeyExist(key)) {
+      return false;
+    }
+    return true;
+  }
+
+  #deepData(key: string) {
+    const each = key.split(".");
+    let data: any = null;
+
+    for (let i = 0; i < each.length; i++) {
+      if (i === 0) {
+        data = this.get(each[i]);
+        continue;
+      }
+
+      if (!isObject(data) && !Array.isArray(data)) {
+        data = null;
+        break;
+      }
+
+      if (!Object.keys(data).includes(each[i])) {
+        data = null;
+        break;
+      }
+
+      const canNumber = Number(each[i]);
+
+      if (Array.isArray(data) && typeof canNumber === "number") {
+        data = data[canNumber];
+      } else {
+        data = data[each[i]];
+      }
+    }
+
+    return data;
   }
 
   #saveOne(key: string): void {
