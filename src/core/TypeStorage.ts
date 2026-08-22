@@ -80,6 +80,23 @@ export class TypeStorage {
     }
   }
 
+  keys(): Array<string> {
+    const data = Object.keys(this.#data);
+
+    return [...data];
+  }
+
+  isKeyExist(key: string | number): boolean {
+    const data = Object.keys(this.#data);
+
+    if (!["string", "number"].includes(typeof key)) {
+      throw new InvalidValueError();
+    }
+
+    const keyData = typeof key === "number" ? key.toString() : key;
+    return data.includes(keyData);
+  }
+
   #saveOne(key: string): void {
     const data =
       typeof this.#data[key] === "string"
