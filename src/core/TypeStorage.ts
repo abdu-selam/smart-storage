@@ -7,7 +7,7 @@ import {
 
 export class TypeStorage {
   #storageType: StorageType;
-  #data: any;
+  #data: Record<string, unknown>;
 
   constructor(type: StorageType) {
     if (!["local", "session"].includes(type)) {
@@ -17,17 +17,32 @@ export class TypeStorage {
     this.#data = this.#createStorage();
   }
 
-  getAll(): {} | null {
+  getAll(): Record<string, unknown> {
     return this.#data;
   }
 
-  set(key: string, value: any): void | never {
-    if (value === undefined || typeof key !== "string") {
+  set(key: string | number, value: any): void | never {
+    if (value === undefined || !["string", "number"].includes(typeof key)) {
       throw new InvalidValueError();
     }
 
-    this.#data[key] = value;
-    this.#saveOne(key);
+    const keyData = typeof key === "number" ? key.toString() : key;
+
+    this.#data[keyData] = value;
+    this.#saveOne(keyData);
+  }
+
+  get(key: string | number): any | never | null {
+    if (!["string", "number"].includes(typeof key)) {
+      throw new InvalidValueError();
+    }
+
+    const keyData = typeof key === "number" ? key.toString() : key;
+
+    const hasKey = Object.keys(this.#data).includes(keyData);
+    if (!hasKey) return null;
+
+    return this.#data[keyData];
   }
 
   #saveOne(key: string): void {
