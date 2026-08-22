@@ -1,7 +1,9 @@
 import { StorageType } from "../types/StorageTypes.js";
 
 import {
-  InvalidTypeError,
+  ConstructionError,
+  InvalidDataError,
+  InvalidKeyError,
   InvalidValueError,
 } from "../errors/StorageErrors.js";
 import { isObject } from "../utils/helper.js";
@@ -12,7 +14,7 @@ export class TypeStorage {
 
   constructor(type: StorageType) {
     if (!["local", "session"].includes(type)) {
-      throw new InvalidTypeError();
+      throw new ConstructionError();
     }
     this.#storageType = type;
     this.#data = this.#createStorage();
@@ -24,7 +26,7 @@ export class TypeStorage {
 
   get(key: string | number): any | never | null {
     if (!["string", "number"].includes(typeof key)) {
-      throw new InvalidValueError();
+      throw new InvalidKeyError();
     }
 
     const keyData = typeof key === "number" ? key.toString() : key;
@@ -40,7 +42,11 @@ export class TypeStorage {
   }
 
   set(key: string | number, value: any): void | never {
-    if (value === undefined || !["string", "number"].includes(typeof key)) {
+    if (!["string", "number"].includes(typeof key)) {
+      throw new InvalidKeyError();
+    }
+
+    if (value === undefined) {
       throw new InvalidValueError();
     }
 
@@ -52,7 +58,7 @@ export class TypeStorage {
 
   setAll(data: Record<string, unknown>): void | never {
     if (!isObject(data)) {
-      throw new InvalidTypeError();
+      throw new InvalidDataError();
     }
 
     const keys = Object.keys(data);
@@ -65,7 +71,7 @@ export class TypeStorage {
 
   remove(key: string | number): void {
     if (!["string", "number"].includes(typeof key)) {
-      throw new InvalidValueError();
+      throw new InvalidKeyError();
     }
 
     const keyData = typeof key === "number" ? key.toString() : key;
@@ -94,7 +100,7 @@ export class TypeStorage {
     const data = Object.keys(this.#data);
 
     if (!["string", "number"].includes(typeof key)) {
-      throw new InvalidValueError();
+      throw new InvalidKeyError();
     }
 
     const keyData = typeof key === "number" ? key.toString() : key;
@@ -108,8 +114,8 @@ export class TypeStorage {
     return true;
   }
 
-  #deepData(key: string) {
-    const each = key.split(".");
+  #deepData(key: string): Record<string, unknown> {
+    const each: Array<string> = key.split(".");
     let data: any = null;
 
     for (let i = 0; i < each.length; i++) {

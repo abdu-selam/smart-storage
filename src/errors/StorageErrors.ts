@@ -1,28 +1,39 @@
-export class InvalidTypeError extends Error {
+export class ConstructionError extends Error {
   constructor() {
-    super("message");
+    super(`Invalid storage type. Expected "local" or "session".`);
 
-    this.name = "InvalidTypeError";
+    this.name = "ConstructionError";
+
+    Object.setPrototypeOf(this, ConstructionError.prototype);
   }
 }
 
-export class InvalidNameError extends Error {
+export class InvalidKeyError extends Error {
   constructor() {
-    super("message");
-    this.name = "InvalidNameErro";
+    super("Invalid storage key. Expected a string or number.");
+
+    this.name = "InvalidKeyError";
+
+    Object.setPrototypeOf(this, InvalidKeyError.prototype);
+  }
+}
+
+export class InvalidDataError extends Error {
+  constructor() {
+    super("Invalid storage data. Expected a non-null object.");
+
+    this.name = "InvalidDataError";
+
+    Object.setPrototypeOf(this, InvalidDataError.prototype);
   }
 }
 
 export class InvalidValueError extends Error {
   constructor() {
-    super("message");
-    this.name = "InvalidValueError";
-  }
-}
+    super("Invalid value. A value must be provided.");
 
-export class InvalidOperationError extends Error {
-  constructor() {
-    super("message");
     this.name = "InvalidValueError";
+
+    Object.setPrototypeOf(this, InvalidValueError.prototype);
   }
 }
