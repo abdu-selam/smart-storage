@@ -1,50 +1,67 @@
 import { StorageType } from "../types/StorageTypes.js";
 
 import {
-  InvalidNameError,
   InvalidTypeError,
+  InvalidValueError,
 } from "../errors/StorageErrors.js";
 
-export class Storage {
-  #storageName: string;
+export class TypeStorage {
   #storageType: StorageType;
   #data: any;
 
-  constructor(name: string, type: StorageType) {
-    if (typeof name !== "string" || name.trim() === "") {
-      throw new InvalidNameError();
-    }
-
+  constructor(type: StorageType) {
     if (!["local", "session"].includes(type)) {
       throw new InvalidTypeError();
     }
-
-    this.#storageName = name;
     this.#storageType = type;
-    this.#data = this.#createStorage(name);
+    this.#data = this.#createStorage();
   }
 
   getAll(): {} | null {
     return this.#data;
   }
 
-  #createStorage(name: string): Record<string, unknown> | null {
-    let item: string | null = null;
+  set(key: string, value: any): void | never {
+    if (value === undefined || typeof key !== "string") {
+      throw new InvalidValueError();
+    }
+
+    this.#data[key] = value;
+    this.#saveOne(key);
+  }
+
+  #saveOne(key: string): void {
+    const data =
+      typeof this.#data[key] === "string"
+        ? this.#data[key]
+        : JSON.stringify(this.#data[key]);
+
     if (this.#storageType === "local") {
-      item = localStorage.getItem(name);
+      localStorage.setItem(key, data);
     } else {
-      item = sessionStorage.getItem(name);
+      sessionStorage.setItem(key, data);
     }
+  }
 
-    if (item === null) {
-      if (this.#storageType === "local") {
-        localStorage.setItem(name, JSON.stringify({}));
-      } else {
-        sessionStorage.setItem(name, JSON.stringify({}));
+  #getAllData(storage: Storage): Record<string, unknown> {
+    const data: Record<string, unknown> = {};
+
+    for (let i = 0; i < storage.length; i++) {
+      const key = storage.key(i);
+
+      if (key !== null) {
+        data[key] = storage.getItem(key);
       }
-      return null;
     }
 
-    return JSON.parse(item);
+    return data;
+  }
+
+  #createStorage(): Record<string, unknown> {
+    if (this.#storageType === "local") {
+      return this.#getAllData(localStorage);
+    } else {
+      return this.#getAllData(sessionStorage);
+    }
   }
 }

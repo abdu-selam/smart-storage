@@ -1,5 +1,7 @@
-import { Storage } from "./core/TypeStorage.js";
+import { TypeStorage } from "./core/TypeStorage.js";
 
-const storage = new Storage("data", "local");
+const storage = new TypeStorage("local");
+
+storage.set("name", "abduselam");
 
 console.log(storage.getAll());

@@ -12,3 +12,17 @@ export class InvalidNameError extends Error {
     this.name = "InvalidNameErro";
   }
 }
+
+export class InvalidValueError extends Error {
+  constructor() {
+    super("message");
+    this.name = "InvalidValueError";
+  }
+}
+
+export class InvalidOperationError extends Error {
+  constructor() {
+    super("message");
+    this.name = "InvalidValueError";
+  }
+}
