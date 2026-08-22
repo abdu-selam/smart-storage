@@ -45,6 +45,19 @@ export class TypeStorage {
     return this.#data[keyData];
   }
 
+  remove(key: string | number): void {
+    if (!["string", "number"].includes(typeof key)) {
+      throw new InvalidValueError();
+    }
+
+    const keyData = typeof key === "number" ? key.toString() : key;
+    if (this.#storageType === "local") {
+      localStorage.removeItem(keyData);
+    } else {
+      sessionStorage.removeItem(keyData);
+    }
+  }
+
   #saveOne(key: string): void {
     const data =
       typeof this.#data[key] === "string"
