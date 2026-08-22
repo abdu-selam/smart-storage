@@ -58,6 +58,14 @@ export class TypeStorage {
     }
   }
 
+  clear(): void {
+    if (this.#storageType === "local") {
+      localStorage.clear();
+    } else {
+      sessionStorage.clear();
+    }
+  }
+
   #saveOne(key: string): void {
     const data =
       typeof this.#data[key] === "string"
