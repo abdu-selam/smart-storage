@@ -4,6 +4,7 @@ import {
   InvalidTypeError,
   InvalidValueError,
 } from "../errors/StorageErrors.js";
+import { isObject } from "../utils/helper.js";
 
 export class TypeStorage {
   #storageType: StorageType;
@@ -21,17 +22,6 @@ export class TypeStorage {
     return this.#data;
   }
 
-  set(key: string | number, value: any): void | never {
-    if (value === undefined || !["string", "number"].includes(typeof key)) {
-      throw new InvalidValueError();
-    }
-
-    const keyData = typeof key === "number" ? key.toString() : key;
-
-    this.#data[keyData] = value;
-    this.#saveOne(keyData);
-  }
-
   get(key: string | number): any | never | null {
     if (!["string", "number"].includes(typeof key)) {
       throw new InvalidValueError();
@@ -43,6 +33,30 @@ export class TypeStorage {
     if (!hasKey) return null;
 
     return this.#data[keyData];
+  }
+
+  set(key: string | number, value: any): void | never {
+    if (value === undefined || !["string", "number"].includes(typeof key)) {
+      throw new InvalidValueError();
+    }
+
+    const keyData = typeof key === "number" ? key.toString() : key;
+
+    this.#data[keyData] = value;
+    this.#saveOne(keyData);
+  }
+
+  setAll(data: Record<string, unknown>): void | never {
+    if (!isObject(data)) {
+      throw new InvalidTypeError();
+    }
+
+    const keys = Object.keys(data);
+    keys.forEach((key) => {
+      const value = data[key];
+      this.#data[key] = value;
+      this.#saveOne(key);
+    });
   }
 
   remove(key: string | number): void {

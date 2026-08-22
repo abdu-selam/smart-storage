@@ -2,9 +2,6 @@ import { TypeStorage } from "./core/TypeStorage.js";
 
 const storage = new TypeStorage("local");
 
-storage.set(2, "abduselam");
+storage.setAll({ name: "Abduselam", age: 21, roll: "admin" });
 
-console.log(storage.get(2));
-
-storage.remove("")
-storage.clear()
+console.log(storage.getAll());
