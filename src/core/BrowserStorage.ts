@@ -8,7 +8,7 @@ import {
 } from "../errors/StorageErrors.js";
 import { isIndex, isObject } from "../utils/helper.js";
 
-export class TypeStorage {
+export class BrowserStorage {
   #storageType: StorageType;
   #data: Record<string, unknown>;
 

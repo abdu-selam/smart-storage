@@ -1,6 +1,6 @@
-import { TypeStorage } from "./core/TypeStorage.js";
+import { BrowserStorage } from "./core/BrowserStorage.js";
 
-const storage = new TypeStorage("local");
+const storage = new BrowserStorage("local");
 // storage.setAll({ name: { gore: null } });
 
 // storage.deepSet("user.name.0", "me");
