@@ -1,4 +1,4 @@
-import { StorageType } from "../types/StorageTypes.js";
+import { StorageType, UpdateCallback } from "../types/StorageTypes.js";
 
 import {
   ConstructionError,
@@ -90,6 +90,7 @@ export class TypeStorage {
 
     if (each.length === 1) {
       this.#data[rootKey] = value;
+      this.#saveOne(rootKey);
       return;
     }
 
@@ -163,6 +164,15 @@ export class TypeStorage {
     }
 
     this.#saveOne(rootKey);
+  }
+
+  update(key: string | number, callback: UpdateCallback): void | never {
+    const keyData = this.#getKeyExtract(key);
+
+    const input = this.get(keyData);
+    const callbackResult = callback(input);
+
+    this.deepSet(keyData, callbackResult);
   }
 
   #setKeyExtract(key: string | number, value: unknown): string | never {

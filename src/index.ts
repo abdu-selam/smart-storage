@@ -5,7 +5,14 @@ const storage = new TypeStorage("local");
 
 // storage.deepSet("user.name.0", "me");
 // storage.set("user", "hello");
+storage.update("user.name", (data) => {
+  //   data.push("89");
+  data[0] += 11;
+  return data;
+});
+
+console.log(storage.getAll());
 
 // console.log(storage.deepGet("name.gore.utt.2"));
-console.log(storage.has("user.name.0")); 
+// console.log(storage.has("user.name.0"));
 // storage.clear();
