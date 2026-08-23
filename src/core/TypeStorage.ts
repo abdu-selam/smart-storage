@@ -32,7 +32,7 @@ export class TypeStorage {
     const keyData = typeof key === "number" ? key.toString() : key;
 
     if (this.#checkKeyExtraction(keyData)) {
-      return this.#deepData(keyData);
+      return this.#deepGet(keyData);
     }
 
     const hasKey = Object.keys(this.#data).includes(keyData);
@@ -51,6 +51,14 @@ export class TypeStorage {
     }
 
     const keyData = typeof key === "number" ? key.toString() : key;
+
+    if (this.#checkKeyExtraction(keyData)) {
+      const result = this.#deepSet(keyData, value);
+      if (result !== null) {
+        this.#saveOne(result);
+      }
+      return;
+    }
 
     this.#data[keyData] = value;
     this.#saveOne(keyData);
@@ -111,10 +119,11 @@ export class TypeStorage {
     if (this.isKeyExist(key)) {
       return false;
     }
-    return true;
+
+    return key.includes(".");
   }
 
-  #deepData(key: string): Record<string, unknown> {
+  #deepGet(key: string): Record<string, unknown> {
     const each: Array<string> = key.split(".");
     let data: any = null;
 
@@ -134,16 +143,105 @@ export class TypeStorage {
         break;
       }
 
-      const canNumber = Number(each[i]);
+      const index = Number(each[i]);
 
-      if (Array.isArray(data) && typeof canNumber === "number") {
-        data = data[canNumber];
+      if (Array.isArray(data) && !Number.isNaN(index)) {
+        data = data[index];
       } else {
         data = data[each[i]];
       }
     }
 
     return data;
+  }
+
+  #deepSet(key: string, value: unknown): string | null {
+    const each = key.split(".").filter(Boolean);
+
+    if (each.length === 0) {
+      return null;
+    }
+
+    const rootKey = each[0];
+
+    if (each.length === 1) {
+      this.#data[rootKey] = value;
+      return rootKey;
+    }
+
+    let data: any = this.#data;
+    let currentKey: string = rootKey;
+
+    for (let i = 0; i < each.length - 1; i++) {
+      const current = each[i];
+      const next = each[i + 1];
+
+      const currentIsIndex = Number.isInteger(Number(current));
+      const nextIsIndex = Number.isInteger(Number(next));
+
+      const requiredContainer = currentIsIndex ? [] : {};
+
+      if (currentIsIndex) {
+        if (!Array.isArray(data)) {
+          data = [];
+        }
+      } else {
+        if (!isObject(data)) {
+          data = {};
+        }
+      }
+
+      if (currentIsIndex) {
+        const index = Number(current);
+
+        if (!isObject(data[index]) && !Array.isArray(data[index])) {
+          data[index] = nextIsIndex ? [] : {};
+        }
+
+        if (nextIsIndex && !Array.isArray(data[index])) {
+          data[index] = [];
+        }
+
+        if (!nextIsIndex && !isObject(data[index])) {
+          data[index] = {};
+        }
+
+        data = data[index];
+      } else {
+        if (!isObject(data[current]) && !Array.isArray(data[current])) {
+          data[current] = nextIsIndex ? [] : {};
+        }
+
+        if (!nextIsIndex && Array.isArray(data[current])) {
+          data[current] = {};
+        }
+
+        if (nextIsIndex && !Array.isArray(data[current])) {
+          data[current] = [];
+        }
+
+        data = data[current];
+      }
+    }
+
+    const lastKey = each[each.length - 1];
+    const lastIsIndex = Number.isInteger(Number(lastKey));
+
+    if (lastIsIndex) {
+      if (!Array.isArray(data)) {
+        return null;
+      }
+
+      data[Number(lastKey)] = value;
+    } else {
+      if (!isObject(data)) {
+        return null;
+      }
+
+      data[lastKey] = value;
+    }
+
+    return rootKey;
   }
 
   #saveOne(key: string): void {
@@ -166,7 +264,13 @@ export class TypeStorage {
       const key = storage.key(i);
 
       if (key !== null) {
-        data[key] = storage.getItem(key);
+        let value = null;
+        try {
+          value = JSON.parse(storage.getItem(key) ?? "null");
+        } catch (error) {
+          value = storage.getItem(key);
+        }
+        data[key] = value;
       }
     }
 
