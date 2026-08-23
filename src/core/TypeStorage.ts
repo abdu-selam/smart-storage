@@ -32,13 +32,51 @@ export class TypeStorage {
     const keyData = typeof key === "number" ? key.toString() : key;
 
     if (this.#checkKeyExtraction(keyData)) {
-      return this.#deepGet(keyData);
+      return this.deepGet(keyData);
     }
 
     const hasKey = Object.keys(this.#data).includes(keyData);
     if (!hasKey) return null;
 
     return this.#data[keyData];
+  }
+
+  deepGet(key: string | number): any | never | null {
+    if (!["string", "number"].includes(typeof key)) {
+      throw new InvalidKeyError();
+    }
+
+    const keyData = typeof key === "number" ? key.toString() : key;
+
+    const each: Array<string> = keyData.split(".");
+    let data: any = null;
+
+    for (let i = 0; i < each.length; i++) {
+      if (i === 0) {
+        data = this.get(each[i]);
+        continue;
+      }
+
+      if (!isObject(data) && !Array.isArray(data)) {
+        data = null;
+        break;
+      }
+
+      if (!Object.keys(data).includes(each[i])) {
+        data = null;
+        break;
+      }
+
+      const index = Number(each[i]);
+
+      if (Array.isArray(data) && !Number.isNaN(index)) {
+        data = data[index];
+      } else {
+        data = data[each[i]];
+      }
+    }
+
+    return data;
   }
 
   set(key: string | number, value: any): void | never {
@@ -52,16 +90,104 @@ export class TypeStorage {
 
     const keyData = typeof key === "number" ? key.toString() : key;
 
-    if (this.#checkKeyExtraction(keyData)) {
-      const result = this.#deepSet(keyData, value);
-      if (result !== null) {
-        this.#saveOne(result);
-      }
+    this.#data[keyData] = value;
+    this.#saveOne(keyData);
+  }
+
+  deepSet(key: string | number, value: unknown): void | never {
+    if (!["string", "number"].includes(typeof key)) {
+      throw new InvalidKeyError();
+    }
+
+    if (value === undefined) {
+      throw new InvalidValueError();
+    }
+
+    const keyData = typeof key === "number" ? key.toString() : key;
+
+    const each = keyData.split(".");
+
+    if (each.length === 0) {
       return;
     }
 
-    this.#data[keyData] = value;
-    this.#saveOne(keyData);
+    const rootKey = each[0];
+
+    if (each.length === 1) {
+      this.#data[rootKey] = value;
+      return;
+    }
+
+    let data: any = this.#data;
+
+    for (let i = 0; i < each.length - 1; i++) {
+      const current = each[i];
+      const next = each[i + 1];
+
+      const currentIsIndex = Number.isInteger(Number(current));
+      const nextIsIndex = Number.isInteger(Number(next));
+
+      if (currentIsIndex) {
+        if (!Array.isArray(data)) {
+          data = [];
+        }
+      } else {
+        if (!isObject(data)) {
+          data = {};
+        }
+      }
+
+      if (currentIsIndex) {
+        const index = Number(current);
+
+        if (!isObject(data[index]) && !Array.isArray(data[index])) {
+          data[index] = nextIsIndex ? [] : {};
+        }
+
+        if (nextIsIndex && !Array.isArray(data[index])) {
+          data[index] = [];
+        }
+
+        if (!nextIsIndex && !isObject(data[index])) {
+          data[index] = {};
+        }
+
+        data = data[index];
+      } else {
+        if (!isObject(data[current]) && !Array.isArray(data[current])) {
+          data[current] = nextIsIndex ? [] : {};
+        }
+
+        if (!nextIsIndex && Array.isArray(data[current])) {
+          data[current] = {};
+        }
+
+        if (nextIsIndex && !Array.isArray(data[current])) {
+          data[current] = [];
+        }
+
+        data = data[current];
+      }
+    }
+
+    const lastKey = each[each.length - 1];
+    const lastIsIndex = Number.isInteger(Number(lastKey));
+
+    if (lastIsIndex) {
+      if (!Array.isArray(data)) {
+        return;
+      }
+
+      data[Number(lastKey)] = value;
+    } else {
+      if (!isObject(data)) {
+        return;
+      }
+
+      data[lastKey] = value;
+    }
+
+    this.#saveOne(rootKey);
   }
 
   setAll(data: Record<string, unknown>): void | never {
@@ -121,127 +247,6 @@ export class TypeStorage {
     }
 
     return key.includes(".");
-  }
-
-  #deepGet(key: string): Record<string, unknown> {
-    const each: Array<string> = key.split(".");
-    let data: any = null;
-
-    for (let i = 0; i < each.length; i++) {
-      if (i === 0) {
-        data = this.get(each[i]);
-        continue;
-      }
-
-      if (!isObject(data) && !Array.isArray(data)) {
-        data = null;
-        break;
-      }
-
-      if (!Object.keys(data).includes(each[i])) {
-        data = null;
-        break;
-      }
-
-      const index = Number(each[i]);
-
-      if (Array.isArray(data) && !Number.isNaN(index)) {
-        data = data[index];
-      } else {
-        data = data[each[i]];
-      }
-    }
-
-    return data;
-  }
-
-  #deepSet(key: string, value: unknown): string | null {
-    const each = key.split(".").filter(Boolean);
-
-    if (each.length === 0) {
-      return null;
-    }
-
-    const rootKey = each[0];
-
-    if (each.length === 1) {
-      this.#data[rootKey] = value;
-      return rootKey;
-    }
-
-    let data: any = this.#data;
-    let currentKey: string = rootKey;
-
-    for (let i = 0; i < each.length - 1; i++) {
-      const current = each[i];
-      const next = each[i + 1];
-
-      const currentIsIndex = Number.isInteger(Number(current));
-      const nextIsIndex = Number.isInteger(Number(next));
-
-      const requiredContainer = currentIsIndex ? [] : {};
-
-      if (currentIsIndex) {
-        if (!Array.isArray(data)) {
-          data = [];
-        }
-      } else {
-        if (!isObject(data)) {
-          data = {};
-        }
-      }
-
-      if (currentIsIndex) {
-        const index = Number(current);
-
-        if (!isObject(data[index]) && !Array.isArray(data[index])) {
-          data[index] = nextIsIndex ? [] : {};
-        }
-
-        if (nextIsIndex && !Array.isArray(data[index])) {
-          data[index] = [];
-        }
-
-        if (!nextIsIndex && !isObject(data[index])) {
-          data[index] = {};
-        }
-
-        data = data[index];
-      } else {
-        if (!isObject(data[current]) && !Array.isArray(data[current])) {
-          data[current] = nextIsIndex ? [] : {};
-        }
-
-        if (!nextIsIndex && Array.isArray(data[current])) {
-          data[current] = {};
-        }
-
-        if (nextIsIndex && !Array.isArray(data[current])) {
-          data[current] = [];
-        }
-
-        data = data[current];
-      }
-    }
-
-    const lastKey = each[each.length - 1];
-    const lastIsIndex = Number.isInteger(Number(lastKey));
-
-    if (lastIsIndex) {
-      if (!Array.isArray(data)) {
-        return null;
-      }
-
-      data[Number(lastKey)] = value;
-    } else {
-      if (!isObject(data)) {
-        return null;
-      }
-
-      data[lastKey] = value;
-    }
-
-    return rootKey;
   }
 
   #saveOne(key: string): void {
