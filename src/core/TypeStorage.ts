@@ -24,12 +24,8 @@ export class TypeStorage {
     return structuredClone(this.#data);
   }
 
-  get(key: string | number): any | never | null {
+  get(key: string | number): unknown | never {
     const keyData = this.#getKeyExtract(key);
-
-    if (this.#checkKeyExtraction(keyData)) {
-      return this.deepGet(keyData);
-    }
 
     const hasKey = this.keys().includes(keyData);
     if (!hasKey) return null;
@@ -37,7 +33,7 @@ export class TypeStorage {
     return this.#data[keyData];
   }
 
-  deepGet(key: string | number): any | never | null {
+  deepGet(key: string | number): unknown | never {
     const keyData = this.#getKeyExtract(key);
 
     const each: Array<string> = keyData.split(".");
@@ -71,14 +67,14 @@ export class TypeStorage {
     return data;
   }
 
-  set(key: string | number, value: any): void | never {
+  set(key: string | number, value: any): void {
     const keyData: string = this.#setKeyExtract(key, value);
 
     this.#data[keyData] = value;
     this.#saveOne(keyData);
   }
 
-  deepSet(key: string | number, value: unknown): void | never {
+  deepSet(key: string | number, value: unknown): void {
     const keyData: string = this.#setKeyExtract(key, value);
     const each: Array<string> = keyData.split(".");
 
@@ -166,7 +162,7 @@ export class TypeStorage {
     this.#saveOne(rootKey);
   }
 
-  update(key: string | number, callback: UpdateCallback): void | never {
+  update(key: string | number, callback: UpdateCallback): void {
     const keyData = this.#getKeyExtract(key);
 
     const input = this.get(keyData);
@@ -198,7 +194,7 @@ export class TypeStorage {
     return keyData;
   }
 
-  setAll(data: Record<string, unknown>): void | never {
+  setAll(data: Record<string, unknown>): void {
     if (!isObject(data)) {
       throw new InvalidDataError();
     }
