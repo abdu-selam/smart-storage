@@ -6,7 +6,7 @@ import {
   InvalidKeyError,
   InvalidValueError,
 } from "../errors/StorageErrors.js";
-import { isObject } from "../utils/helper.js";
+import { isIndex, isObject } from "../utils/helper.js";
 
 export class TypeStorage {
   #storageType: StorageType;
@@ -21,7 +21,7 @@ export class TypeStorage {
   }
 
   getAll(): Record<string, unknown> {
-    return this.#data;
+    return structuredClone(this.#data);
   }
 
   get(key: string | number): any | never | null {
@@ -99,8 +99,8 @@ export class TypeStorage {
       const current = each[i];
       const next = each[i + 1];
 
-      const currentIsIndex = Number.isInteger(Number(current));
-      const nextIsIndex = Number.isInteger(Number(next));
+      const currentIsIndex = isIndex(current);
+      const nextIsIndex = isIndex(next);
 
       if (currentIsIndex) {
         if (!Array.isArray(data)) {
@@ -146,7 +146,7 @@ export class TypeStorage {
     }
 
     const lastKey = each[each.length - 1];
-    const lastIsIndex = Number.isInteger(Number(lastKey));
+    const lastIsIndex = isIndex(lastKey);
 
     if (lastIsIndex) {
       if (!Array.isArray(data)) {
@@ -212,6 +212,8 @@ export class TypeStorage {
     } else {
       sessionStorage.removeItem(keyData);
     }
+
+    this.#data = this.#createStorage();
   }
 
   clear(): void {
@@ -220,6 +222,8 @@ export class TypeStorage {
     } else {
       sessionStorage.clear();
     }
+
+    this.#data = this.#createStorage();
   }
 
   keys(): Array<string> {
@@ -228,19 +232,68 @@ export class TypeStorage {
     return [...data];
   }
 
-  isKeyExist(key: string | number): boolean {
+  has(key: string | number): boolean | never {
     const data = Object.keys(this.#data);
+    const keyData = this.#getKeyExtract(key);
 
-    if (!["string", "number"].includes(typeof key)) {
-      throw new InvalidKeyError();
+    if (this.#checkKeyExtraction(keyData)) {
+      return this.#deepHas(keyData);
     }
 
-    const keyData = typeof key === "number" ? key.toString() : key;
     return data.includes(keyData);
   }
 
+  #deepHas(key: string): boolean {
+    const each: Array<string> = key.split(".");
+    if (each.length === 0) {
+      return false;
+    }
+
+    const rootKey = each[0];
+
+    if (each.length === 1) {
+      return this.keys().includes(rootKey);
+    }
+
+    let data: any = this.#data[each[0]];
+
+    for (let i = 1; i < each.length - 1; i++) {
+      if (!isObject(data) && !Array.isArray(data)) {
+        return false;
+      }
+
+      const index = Number(each[i]);
+      if (isObject(data) && !Object.keys(data).includes(each[i])) {
+        return false;
+      } else if (Array.isArray(data)) {
+        if (!isIndex(each[i])) {
+          return false;
+        }
+
+        if (index >= data.length) {
+          return false;
+        }
+      }
+
+      if (Array.isArray(data) && isIndex(each[i])) {
+        data = data[index];
+      } else {
+        data = data[each[i]];
+      }
+    }
+
+    const lastKey = each[each.length - 1];
+    const lastIsIndex = isIndex(lastKey);
+
+    if (Array.isArray(data)) {
+      return lastIsIndex && Number(lastKey) < data.length;
+    }
+
+    return Object.keys(data).includes(lastKey);
+  }
+
   #checkKeyExtraction(key: string): boolean {
-    if (this.isKeyExist(key)) {
+    if (Object.keys(this.#data).includes(key)) {
       return false;
     }
 
