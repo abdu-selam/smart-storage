@@ -5,12 +5,7 @@ const storage = new BrowserStorage("local");
 
 // storage.deepSet("user.name.0", "me");
 // storage.set("user", "hello");
-storage.update("user.name", (data) => {
-  //   data.push("89");
-  console.log(data);
-  data[0] += 11;
-  return data;
-});
+// storage.update("user", () => "");
 
 console.log(storage.getAll());
 

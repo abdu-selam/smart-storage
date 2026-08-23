@@ -3,6 +3,7 @@ import { StorageType, UpdateCallback } from "../types/StorageTypes.js";
 import {
   ConstructionError,
   InvalidDataError,
+  InvalidFunctionError,
   InvalidKeyError,
   InvalidValueError,
 } from "../errors/StorageErrors.js";
@@ -164,6 +165,10 @@ export class BrowserStorage {
 
   update(key: string | number, callback: UpdateCallback): void {
     const keyData = this.#getKeyExtract(key);
+
+    if (typeof callback !== "function") {
+      throw new InvalidFunctionError();
+    }
 
     const input = this.deepGet(keyData);
     const callbackResult = callback(input);

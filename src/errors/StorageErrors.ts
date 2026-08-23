@@ -37,3 +37,13 @@ export class InvalidValueError extends Error {
     Object.setPrototypeOf(this, InvalidValueError.prototype);
   }
 }
+
+export class InvalidFunctionError extends Error {
+  constructor() {
+    super("Invalid callback. A callback must be function.");
+
+    this.name = "InvalidFunctionError";
+
+    Object.setPrototypeOf(this, InvalidFunctionError.prototype);
+  }
+}
