@@ -7,6 +7,7 @@ const storage = new TypeStorage("local");
 // storage.set("user", "hello");
 storage.update("user.name", (data) => {
   //   data.push("89");
+  console.log(data);
   data[0] += 11;
   return data;
 });

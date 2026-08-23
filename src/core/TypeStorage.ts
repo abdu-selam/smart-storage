@@ -99,7 +99,7 @@ export class TypeStorage {
       const currentIsIndex = isIndex(current);
       const nextIsIndex = isIndex(next);
 
-      if (currentIsIndex) {
+      if (currentIsIndex && i !== 0) {
         if (!Array.isArray(data)) {
           data = [];
         }
@@ -165,7 +165,7 @@ export class TypeStorage {
   update(key: string | number, callback: UpdateCallback): void {
     const keyData = this.#getKeyExtract(key);
 
-    const input = this.get(keyData);
+    const input = this.deepGet(keyData);
     const callbackResult = callback(input);
 
     this.deepSet(keyData, callbackResult);
@@ -213,23 +213,15 @@ export class TypeStorage {
     }
 
     const keyData = typeof key === "number" ? key.toString() : key;
-    if (this.#storageType === "local") {
-      localStorage.removeItem(keyData);
-    } else {
-      sessionStorage.removeItem(keyData);
-    }
+    this.#getStorage().removeItem(keyData);
 
-    this.#data = this.#createStorage();
+    delete this.#data[keyData];
   }
 
   clear(): void {
-    if (this.#storageType === "local") {
-      localStorage.clear();
-    } else {
-      sessionStorage.clear();
-    }
+    this.#getStorage().clear();
 
-    this.#data = this.#createStorage();
+    this.#data = {};
   }
 
   keys(): Array<string> {
@@ -306,17 +298,17 @@ export class TypeStorage {
     return key.includes(".");
   }
 
+  #getStorage(): Storage {
+    return this.#storageType === "local" ? localStorage : sessionStorage;
+  }
+
   #saveOne(key: string): void {
     const data =
       typeof this.#data[key] === "string"
         ? this.#data[key]
         : JSON.stringify(this.#data[key]);
 
-    if (this.#storageType === "local") {
-      localStorage.setItem(key, data);
-    } else {
-      sessionStorage.setItem(key, data);
-    }
+    this.#getStorage().setItem(key, data);
   }
 
   #getAllData(storage: Storage): Record<string, unknown> {
@@ -340,10 +332,6 @@ export class TypeStorage {
   }
 
   #createStorage(): Record<string, unknown> {
-    if (this.#storageType === "local") {
-      return this.#getAllData(localStorage);
-    } else {
-      return this.#getAllData(sessionStorage);
-    }
+    return this.#getAllData(this.#getStorage());
   }
 }
