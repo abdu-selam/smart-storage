@@ -25,28 +25,20 @@ export class TypeStorage {
   }
 
   get(key: string | number): any | never | null {
-    if (!["string", "number"].includes(typeof key)) {
-      throw new InvalidKeyError();
-    }
-
-    const keyData = typeof key === "number" ? key.toString() : key;
+    const keyData = this.#getKeyExtract(key);
 
     if (this.#checkKeyExtraction(keyData)) {
       return this.deepGet(keyData);
     }
 
-    const hasKey = Object.keys(this.#data).includes(keyData);
+    const hasKey = this.keys().includes(keyData);
     if (!hasKey) return null;
 
     return this.#data[keyData];
   }
 
   deepGet(key: string | number): any | never | null {
-    if (!["string", "number"].includes(typeof key)) {
-      throw new InvalidKeyError();
-    }
-
-    const keyData = typeof key === "number" ? key.toString() : key;
+    const keyData = this.#getKeyExtract(key);
 
     const each: Array<string> = keyData.split(".");
     let data: any = null;
@@ -80,32 +72,15 @@ export class TypeStorage {
   }
 
   set(key: string | number, value: any): void | never {
-    if (!["string", "number"].includes(typeof key)) {
-      throw new InvalidKeyError();
-    }
-
-    if (value === undefined) {
-      throw new InvalidValueError();
-    }
-
-    const keyData = typeof key === "number" ? key.toString() : key;
+    const keyData: string = this.#setKeyExtract(key, value);
 
     this.#data[keyData] = value;
     this.#saveOne(keyData);
   }
 
   deepSet(key: string | number, value: unknown): void | never {
-    if (!["string", "number"].includes(typeof key)) {
-      throw new InvalidKeyError();
-    }
-
-    if (value === undefined) {
-      throw new InvalidValueError();
-    }
-
-    const keyData = typeof key === "number" ? key.toString() : key;
-
-    const each = keyData.split(".");
+    const keyData: string = this.#setKeyExtract(key, value);
+    const each: Array<string> = keyData.split(".");
 
     if (each.length === 0) {
       return;
@@ -188,6 +163,29 @@ export class TypeStorage {
     }
 
     this.#saveOne(rootKey);
+  }
+
+  #setKeyExtract(key: string | number, value: unknown): string | never {
+    if (!["string", "number"].includes(typeof key)) {
+      throw new InvalidKeyError();
+    }
+
+    if (value === undefined) {
+      throw new InvalidValueError();
+    }
+
+    const keyData = typeof key === "number" ? key.toString() : key;
+
+    return keyData;
+  }
+
+  #getKeyExtract(key: string | number): string | never {
+    if (!["string", "number"].includes(typeof key)) {
+      throw new InvalidKeyError();
+    }
+
+    const keyData = typeof key === "number" ? key.toString() : key;
+    return keyData;
   }
 
   setAll(data: Record<string, unknown>): void | never {
