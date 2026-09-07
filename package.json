@@ -1,5 +1,5 @@
 {
-  "name": "smart-storage",
+  "name": "@abdu-selam/smart-storage",
   "version": "1.0.0",
   "description": "A simple and powerfull storage api that allow you to handle localStorage and sessionStorage easily.",
   "main": "./dist/index.cjs",
