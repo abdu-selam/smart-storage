@@ -2,6 +2,7 @@
   "name": "@abdu-selam/smart-storage",
   "version": "1.0.0",
   "description": "A simple and powerfull storage api that allow you to handle localStorage and sessionStorage easily.",
+  "license": "MIT",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.mts",
