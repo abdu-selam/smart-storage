@@ -1,4 +1,4 @@
-import { StorageType, UpdateCallback } from "../types/StorageTypes.js";
+import type { StorageType, UpdateCallback } from "../types/StorageTypes.js";
 
 import {
   ConstructionError,
@@ -42,7 +42,7 @@ export class BrowserStorage {
 
     for (let i = 0; i < each.length; i++) {
       if (i === 0) {
-        data = this.get(each[i]);
+        data = this.get(`${each[i]}`);
         continue;
       }
 
@@ -51,7 +51,7 @@ export class BrowserStorage {
         break;
       }
 
-      if (!Object.keys(data).includes(each[i])) {
+      if (!Object.keys(data).includes(`${each[i]}`)) {
         data = null;
         break;
       }
@@ -61,7 +61,7 @@ export class BrowserStorage {
       if (Array.isArray(data) && !Number.isNaN(index)) {
         data = data[index];
       } else {
-        data = data[each[i]];
+        data = data[`${each[i]}`];
       }
     }
 
@@ -83,7 +83,7 @@ export class BrowserStorage {
       return;
     }
 
-    const rootKey = each[0];
+    const rootKey: string = `${each[0]}`;
 
     if (each.length === 1) {
       this.#data[rootKey] = value;
@@ -94,8 +94,8 @@ export class BrowserStorage {
     let data: any = this.#data;
 
     for (let i = 0; i < each.length - 1; i++) {
-      const current = each[i];
-      const next = each[i + 1];
+      const current = `${each[i]}`;
+      const next = `${each[i + 1]}`;
 
       const currentIsIndex = isIndex(current);
       const nextIsIndex = isIndex(next);
@@ -143,7 +143,7 @@ export class BrowserStorage {
       }
     }
 
-    const lastKey = each[each.length - 1];
+    const lastKey = `${each[each.length - 1]}`;
     const lastIsIndex = isIndex(lastKey);
 
     if (lastIsIndex) {
@@ -252,13 +252,13 @@ export class BrowserStorage {
       return false;
     }
 
-    const rootKey = each[0];
+    const rootKey = `${each[0]}`;
 
     if (each.length === 1) {
       return this.keys().includes(rootKey);
     }
 
-    let data: any = this.#data[each[0]];
+    let data: any = this.#data[rootKey];
 
     for (let i = 1; i < each.length - 1; i++) {
       if (!isObject(data) && !Array.isArray(data)) {
@@ -266,10 +266,10 @@ export class BrowserStorage {
       }
 
       const index = Number(each[i]);
-      if (isObject(data) && !Object.keys(data).includes(each[i])) {
+      if (isObject(data) && !Object.keys(data).includes(`${each[i]}`)) {
         return false;
       } else if (Array.isArray(data)) {
-        if (!isIndex(each[i])) {
+        if (!isIndex(`${each[i]}`)) {
           return false;
         }
 
@@ -278,14 +278,14 @@ export class BrowserStorage {
         }
       }
 
-      if (Array.isArray(data) && isIndex(each[i])) {
+      if (Array.isArray(data) && isIndex(`${each[i]}`)) {
         data = data[index];
       } else {
-        data = data[each[i]];
+        data = data[`${each[i]}`];
       }
     }
 
-    const lastKey = each[each.length - 1];
+    const lastKey = `${each[each.length - 1]}`;
     const lastIsIndex = isIndex(lastKey);
 
     if (Array.isArray(data)) {

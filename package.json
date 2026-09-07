@@ -1,15 +1,52 @@
 {
-  "name": "type-storage",
+  "name": "smart-storage",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "dev": "tsx watch ./src/index.ts"
+  "description": "A simple and powerfull storage api that allow you to handle localStorage and sessionStorage easily.",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": {
+      "types": {
+        "import": "./dist/index.d.mts",
+        "require": "./dist/index.d.cts"
+      },
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
   },
-  "keywords": [],
-  "type": "commonjs",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch ./src/index.ts",
+    "build": "tsdown",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "storage",
+    "localstorage",
+    "sessionstorage",
+    "typescript",
+    "javascript",
+    "browser-storage"
+  ],
+  "author": "Abduselam Awel",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/abdu-selam/smart-storage.git"
+  },
+  "bugs": {
+    "url": "https://github.com/abdu-selam/smart-storage/issues"
+  },
+  "homepage": "https://github.com/abdu-selam/smart-storage#readme",
+  "engines": {
+    "node": ">=18"
+  },
   "devDependencies": {
     "@types/node": "^26.2.0",
+    "tsdown": "^0.23.0",
     "tsx": "^4.23.12",
     "typescript": "^7.0.2"
   }

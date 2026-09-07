@@ -1,22 +1,28 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
-    "types": ["node"],
-
-    "module": "ESNext",
+    "target": "esnext",
 
     "rootDir": "./src",
     "outDir": "./dist",
 
+    "module": "nodenext",
+    "types": ["node"],
+
+    "strict": true,
+
+    "sourceMap": true,
     "declaration": true,
     "declarationMap": true,
 
-    "lib": ["ES2020", "DOM"],
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
 
-    "sourceMap": true,
-
-    "strict": true
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "noUncheckedSideEffectImports": true,
+    "moduleDetection": "force",
+    "skipLibCheck": true
   },
-
-  "include": ["src"]
+  "include": ["src/**/*"],
+  "exclude": ["dist", "node_modules", "tests"]
 }
