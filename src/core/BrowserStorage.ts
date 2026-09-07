@@ -1,4 +1,8 @@
-import type { StorageType, UpdateCallback } from "../types/StorageTypes.js";
+import type {
+  BrowserStorageType,
+  StorageType,
+  UpdateCallback,
+} from "../types/StorageTypes.js";
 
 import {
   ConstructionError,
@@ -9,7 +13,7 @@ import {
 } from "../errors/StorageErrors.js";
 import { isIndex, isObject } from "../utils/helper.js";
 
-export class BrowserStorage {
+export class BrowserStorage implements BrowserStorageType {
   #storageType: StorageType;
   #data: Record<string, unknown>;
 
