@@ -11,7 +11,6 @@ export const isFileExist = async (path: string): Promise<boolean> => {
   }
 };
 
-
 export const isJson = async (path: string): Promise<boolean> => {
   const isFile = await isFileExist(path);
   if (!isFile) return false;
@@ -26,4 +25,11 @@ export const isJson = async (path: string): Promise<boolean> => {
   } catch (error) {
     return false;
   }
+};
+
+export const createJson = async (path: string, data: string): Promise<void> => {
+  const checkJson = await isJson(path);
+  if (checkJson) return;
+
+  await fs.writeFile(path, data);
 };
