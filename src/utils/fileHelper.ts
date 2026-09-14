@@ -33,3 +33,12 @@ export const createJson = async (path: string, data: string): Promise<void> => {
 
   await fs.writeFile(path, data);
 };
+
+export const readFile = async (path: string): Promise<string | null> => {
+  const check = await isFileExist(path);
+  if (!check) return null;
+
+  const data = (await fs.readFile(path)).toString();
+
+  return data;
+};
