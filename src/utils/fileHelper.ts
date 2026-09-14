@@ -27,11 +27,18 @@ export const isJson = async (path: string): Promise<boolean> => {
   }
 };
 
-export const createJson = async (path: string, data: string): Promise<void> => {
+export const createJson = async (
+  path: string,
+  data: string,
+): Promise<string> => {
   const checkJson = await isJson(path);
-  if (checkJson) return;
+  if (checkJson) {
+    const data = await readFile(path);
+    return data || "{}";
+  }
 
   await fs.writeFile(path, data);
+  return data;
 };
 
 export const readFile = async (path: string): Promise<string | null> => {

@@ -1,24 +1,39 @@
-import type { JsonStorageType } from "../types/JsonStorageTypes.js";
-import { createJson, isJson, readFile } from "../utils/fileHelper.js";
+import type {
+  JsonDataType,
+  JsonStorageType,
+} from "../types/JsonStorageTypes.js";
+import { createJson } from "../utils/fileHelper.js";
+import { isIndex } from "../utils/helper.js";
 
-class JsonStorage implements JsonStorageType {
-  constructor(
-    public filePath: string,
-    { force = true, object = true },
-  ) {
-    if (force) {
-      createJson(filePath, object ? "{}" : "[]");
-    }
+export class JsonStorage implements JsonStorageType {
+  #data: JsonDataType = {};
+
+  constructor(public filePath: string) {
+    createJson(filePath, "{}").then((res) => {
+      const data = JSON.parse(res);
+      this.#data = data;
+    });
   }
 
-  async getAll(): Promise<Record<string, unknown>> {
-    const check = isJson(this.filePath);
-    if (!check) {
-      throw new Error("not json");
+  getAll(): JsonDataType {
+    const data = structuredClone(this.#data);
+
+    return data;
+  }
+
+  get(key: string | number): unknown | never {
+    if (!["string", "number"].includes(typeof key)) {
+      throw new Error();
     }
 
-    const data = await readFile(this.filePath);
+    if (Array.isArray(this.#data)) {
+      if (!isIndex(key)) {
+        throw new Error();
+      }
+      
+      return this.#data[Number(key)];
+    }
 
-    return JSON.parse(data || "{}");
+    return this.#data[key];
   }
 }
