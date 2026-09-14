@@ -11,3 +11,19 @@ export const isFileExist = async (path: string): Promise<boolean> => {
   }
 };
 
+
+export const isJson = async (path: string): Promise<boolean> => {
+  const isFile = await isFileExist(path);
+  if (!isFile) return false;
+
+  const ext = nodePath.extname(path);
+  if (ext !== ".json") return false;
+
+  try {
+    const data = await (await fs.readFile(path)).toString();
+    JSON.parse(data);
+    return true;
+  } catch (error) {
+    return false;
+  }
+};
