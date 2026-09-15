@@ -1,6 +1,7 @@
 import type {
   JsonDataType,
   JsonStorageType,
+  UpdateCallback,
 } from "../types/JsonStorageTypes.js";
 import { createJson, saveJson } from "../utils/fileHelper.js";
 import { isIndex, isObject } from "../utils/helper.js";
@@ -196,6 +197,19 @@ export class JsonStorage implements JsonStorageType {
 
     this.#data = structuredClone(this.#data);
     await saveJson(this.filePath, this.#data);
+  }
+
+  async update(key: string | number, callback: UpdateCallback): Promise<void> {
+    const keyData = this.#getKeyExtract(key);
+
+    if (typeof callback !== "function") {
+      throw new Error();
+    }
+
+    const input = await this.deepGet(keyData);
+    const callbackResult = callback(input);
+
+    await this.deepSet(keyData, callbackResult);
   }
 
   async setAll(data: JsonDataType): Promise<void> {
