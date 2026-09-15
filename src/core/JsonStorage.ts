@@ -39,6 +39,40 @@ export class JsonStorage implements JsonStorageType {
     return structuredClone(this.#data[key]);
   }
 
+  async deepGet(key: string | number): Promise<unknown | never> {
+    const keyData = this.#getKeyExtract(key);
+
+    const each: Array<string> = keyData.split(".");
+    let data: any;
+
+    for (let i = 0; i < each.length; i++) {
+      if (i === 0) {
+        data = await this.get(`${each[i]}`);
+        continue;
+      }
+
+      if (!isObject(data) && !Array.isArray(data)) {
+        data = undefined;
+        break;
+      }
+
+      if (isObject(data) && !Object.keys(data).includes(`${each[i]}`)) {
+        data = undefined;
+        break;
+      }
+
+      
+      if (Array.isArray(data) && isIndex(`${each[i]}`)) {
+        const index = Number(each[i]);
+        data = data[index];
+      } else {
+        data = data[`${each[i]}`];
+      }
+    }
+
+    return data;
+  }
+
   async set(key: string | number, value: any): Promise<void> {
     if (!this.#constructed) {
       await this.#dataCreator();
@@ -157,5 +191,14 @@ export class JsonStorage implements JsonStorageType {
 
     this.#data = data;
     this.#constructed = true;
+  }
+
+  #getKeyExtract(key: string | number): string | never {
+    if (!["string", "number"].includes(typeof key)) {
+      throw new Error();
+    }
+
+    const keyData = typeof key === "number" ? key.toString() : key;
+    return keyData;
   }
 }

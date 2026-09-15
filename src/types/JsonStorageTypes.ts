@@ -3,6 +3,7 @@ export interface JsonStorageType {
 
   getAll: () => Promise<JsonDataType>;
   get: (key: string | number) => Promise<unknown | never>;
+  deepGet: (key: string | number) => Promise<unknown | never>;
 
   set: (key: string | number, value: any) => Promise<void>;
   setAll: (data: JsonDataType) => Promise<void>;
