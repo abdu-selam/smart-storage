@@ -129,6 +129,28 @@ export class JsonStorage implements JsonStorageType {
     return null;
   }
 
+  async has(key: string | number): Promise<boolean> {
+    if (!this.#constructed) {
+      await this.#dataCreator();
+    }
+
+    if (!["string", "number"].includes(typeof key)) {
+      throw new Error();
+    }
+
+    if (Array.isArray(this.#data)) {
+      if (!isIndex(key)) {
+        return false;
+      }
+
+      const index = Number(key);
+      return this.#data.length > index && index > -1;
+    }
+
+    const keys = await this.keys();
+    return keys.includes(`${key}`);
+  }
+
   async #dataCreator(): Promise<void> {
     const res = await createJson(this.filePath, "{}");
     const data = JSON.parse(res);
