@@ -3,7 +3,7 @@ import type {
   JsonStorageType,
 } from "../types/JsonStorageTypes.js";
 import { createJson, saveJson } from "../utils/fileHelper.js";
-import { isIndex } from "../utils/helper.js";
+import { isIndex, isObject } from "../utils/helper.js";
 
 export class JsonStorage implements JsonStorageType {
   #data: JsonDataType = {};
@@ -36,7 +36,7 @@ export class JsonStorage implements JsonStorageType {
       return this.#data[Number(key)];
     }
 
-    return this.#data[key];
+    return structuredClone(this.#data[key]);
   }
 
   async set(key: string | number, value: any): Promise<void> {
@@ -52,11 +52,24 @@ export class JsonStorage implements JsonStorageType {
         throw new Error();
       }
 
-      this.#data[Number(key)] = value;
+      this.#data[Number(key)] = structuredClone(value);
       return;
     }
 
-    this.#data[`${key}`] = value;
+    this.#data[`${key}`] = structuredClone(value);
+    await saveJson(this.filePath, this.#data);
+  }
+
+  async setAll(data: JsonDataType): Promise<void> {
+    if (!this.#constructed) {
+      await this.#dataCreator();
+    }
+
+    if (!isObject(data) && !Array.isArray(data)) {
+      throw new Error("");
+    }
+
+    this.#data = structuredClone(data);
     await saveJson(this.filePath, this.#data);
   }
 
