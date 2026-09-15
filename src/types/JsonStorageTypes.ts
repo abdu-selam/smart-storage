@@ -8,6 +8,7 @@ export interface JsonStorageType {
   setAll: (data: JsonDataType) => Promise<void>;
 
   remove: (key: string | number) => Promise<void>;
+  clear: () => Promise<void>;
 }
 
 export type JsonDataType = Record<string, unknown> | Array<unknown>;

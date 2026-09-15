@@ -95,6 +95,16 @@ export class JsonStorage implements JsonStorageType {
     await saveJson(this.filePath, this.#data);
   }
 
+  async clear(): Promise<void> {
+    if (!this.#constructed) {
+      await this.#dataCreator();
+    }
+
+    this.#data = Array.isArray(this.#data) ? [] : {};
+
+    await saveJson(this.filePath, this.#data);
+  }
+
   async #dataCreator(): Promise<void> {
     const res = await createJson(this.filePath, "{}");
     const data = JSON.parse(res);
