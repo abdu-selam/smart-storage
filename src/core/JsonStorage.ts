@@ -40,6 +40,9 @@ export class JsonStorage implements JsonStorageType {
   }
 
   async deepGet(key: string | number): Promise<unknown | never> {
+    if (!this.#constructed) {
+      await this.#dataCreator();
+    }
     const keyData = this.#getKeyExtract(key);
 
     const each: Array<string> = keyData.split(".");
@@ -61,7 +64,6 @@ export class JsonStorage implements JsonStorageType {
         break;
       }
 
-      
       if (Array.isArray(data) && isIndex(`${each[i]}`)) {
         const index = Number(each[i]);
         data = data[index];
@@ -91,6 +93,108 @@ export class JsonStorage implements JsonStorageType {
     }
 
     this.#data[`${key}`] = structuredClone(value);
+    await saveJson(this.filePath, this.#data);
+  }
+
+  async deepSet(key: string | number, value: unknown): Promise<void> {
+    if (!this.#constructed) {
+      await this.#dataCreator();
+    }
+
+    const keyData: string = this.#setKeyExtract(key, value);
+    const each: Array<string> = keyData.split(".");
+
+    if (each.length === 0) {
+      return;
+    }
+
+    const rootKey: string = `${each[0]}`;
+
+    if (each.length === 1) {
+      if (Array.isArray(this.#data)) {
+        if (!isIndex(rootKey)) {
+          throw new Error();
+        }
+
+        this.#data[Number(rootKey)] = structuredClone(value);
+      } else {
+        this.#data[rootKey] = structuredClone(value);
+      }
+
+      await saveJson(this.filePath, this.#data);
+      return;
+    }
+
+    let data: any = this.#data;
+
+    for (let i = 0; i < each.length - 1; i++) {
+      const current = `${each[i]}`;
+      const next = `${each[i + 1]}`;
+
+      const currentIsIndex = isIndex(current);
+      const nextIsIndex = isIndex(next);
+
+      if (currentIsIndex && i !== 0) {
+        if (!Array.isArray(data)) {
+          data = [];
+        }
+      } else {
+        if (!isObject(data)) {
+          data = {};
+        }
+      }
+
+      if (currentIsIndex) {
+        const index = Number(current);
+
+        if (!isObject(data[index]) && !Array.isArray(data[index])) {
+          data[index] = nextIsIndex ? [] : {};
+        }
+
+        if (nextIsIndex && !Array.isArray(data[index])) {
+          data[index] = [];
+        }
+
+        if (!nextIsIndex && !isObject(data[index])) {
+          data[index] = {};
+        }
+
+        data = data[index];
+      } else {
+        if (!isObject(data[current]) && !Array.isArray(data[current])) {
+          data[current] = nextIsIndex ? [] : {};
+        }
+
+        if (!nextIsIndex && Array.isArray(data[current])) {
+          data[current] = {};
+        }
+
+        if (nextIsIndex && !Array.isArray(data[current])) {
+          data[current] = [];
+        }
+
+        data = data[current];
+      }
+    }
+
+    const lastKey = `${each[each.length - 1]}`;
+    const lastIsIndex = isIndex(lastKey);
+
+    if (lastIsIndex) {
+      if (!Array.isArray(data)) {
+        return;
+      }
+
+      data[Number(lastKey)] = value;
+    } else {
+      if (!isObject(data)) {
+        return;
+      }
+
+      data[lastKey] = value;
+    }
+
+    this.#data = structuredClone(this.#data);
     await saveJson(this.filePath, this.#data);
   }
 
@@ -199,6 +303,20 @@ export class JsonStorage implements JsonStorageType {
     }
 
     const keyData = typeof key === "number" ? key.toString() : key;
+    return keyData;
+  }
+
+  #setKeyExtract(key: string | number, value: unknown): string | never {
+    if (!["string", "number"].includes(typeof key)) {
+      throw new Error();
+    }
+
+    if (value === undefined) {
+      throw new Error();
+    }
+
+    const keyData = typeof key === "number" ? key.toString() : key;
+
     return keyData;
   }
 }
