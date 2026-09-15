@@ -286,21 +286,87 @@ export class JsonStorage implements JsonStorageType {
       await this.#dataCreator();
     }
 
-    if (!["string", "number"].includes(typeof key)) {
-      throw new Error();
-    }
+    const keyData = this.#getKeyExtract(key);
 
-    if (Array.isArray(this.#data)) {
-      if (!isIndex(key)) {
-        return false;
-      }
-
-      const index = Number(key);
-      return this.#data.length > index && index > -1;
+    if (this.#checkKeyExtraction(keyData)) {
+      return this.#deepHas(keyData);
     }
 
     const keys = await this.keys();
-    return keys.includes(`${key}`);
+
+    const index = Number(keyData);
+    return Array.isArray(this.#data)
+      ? keys.includes(index)
+      : keys.includes(keyData);
+  }
+
+  async #deepHas(key: string): Promise<boolean> {
+    const each: Array<string> = key.split(".");
+    if (each.length === 0) {
+      return false;
+    }
+
+    const rootKey = `${each[0]}`;
+
+    if (each.length === 1) {
+      const check = await this.has(rootKey);
+      return check;
+    }
+
+    let data: any;
+    if (Array.isArray(this.#data)) {
+      if (!isIndex(rootKey)) {
+        return false;
+      }
+
+      const index = Number(rootKey);
+      data = this.#data[index];
+    } else {
+      data = this.#data[rootKey];
+    }
+
+    for (let i = 1; i < each.length - 1; i++) {
+      if (!isObject(data) && !Array.isArray(data)) {
+        return false;
+      }
+
+      const index = Number(each[i]);
+      if (isObject(data) && !Object.keys(data).includes(`${each[i]}`)) {
+        return false;
+      } else if (Array.isArray(data)) {
+        if (!isIndex(`${each[i]}`)) {
+          return false;
+        }
+
+        if (index >= data.length) {
+          return false;
+        }
+      }
+
+      if (Array.isArray(data) && isIndex(`${each[i]}`)) {
+        data = data[index];
+      } else {
+        data = data[`${each[i]}`];
+      }
+    }
+
+    const lastKey = `${each[each.length - 1]}`;
+    const lastIsIndex = isIndex(lastKey);
+
+    console.log(data);
+    if (Array.isArray(data)) {
+      return lastIsIndex && Number(lastKey) < data.length;
+    }
+
+    return isObject(data) ? Object.keys(data).includes(lastKey) : false;
+  }
+
+  #checkKeyExtraction(key: string): boolean {
+    if (Object.keys(this.#data).includes(key)) {
+      return false;
+    }
+
+    return key.includes(".");
   }
 
   async #dataCreator(): Promise<void> {
