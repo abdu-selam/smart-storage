@@ -9,21 +9,21 @@ export class JsonStorage implements JsonStorageType {
   #data: JsonDataType = {};
   #constructed = false;
 
-  constructor(public filePath: string) {
-    createJson(filePath, "{}").then((res) => {
-      const data = JSON.parse(res);
-      this.#data = data;
-      this.#constructed = true;
-    });
-  }
+  constructor(public filePath: string) {}
 
-  getAll(): JsonDataType {
+  async getAll(): Promise<JsonDataType> {
+    if (!this.#constructed) {
+      await this.#dataCreator();
+    }
     const data = structuredClone(this.#data);
 
     return data;
   }
 
-  get(key: string | number): unknown | never {
+  async get(key: string | number): Promise<unknown | never> {
+    if (!this.#constructed) {
+      await this.#dataCreator();
+    }
     if (!["string", "number"].includes(typeof key)) {
       throw new Error();
     }
@@ -40,6 +40,9 @@ export class JsonStorage implements JsonStorageType {
   }
 
   async set(key: string | number, value: any): Promise<void> {
+    if (!this.#constructed) {
+      await this.#dataCreator();
+    }
     if (!["string", "number"].includes(typeof key)) {
       throw new Error();
     }
@@ -55,5 +58,13 @@ export class JsonStorage implements JsonStorageType {
 
     this.#data[`${key}`] = value;
     await saveJson(this.filePath, this.#data);
+  }
+
+  async #dataCreator(): Promise<void> {
+    const res = await createJson(this.filePath, "{}");
+    const data = JSON.parse(res);
+
+    this.#data = data;
+    this.#constructed = true;
   }
 }

@@ -1,8 +1,8 @@
 export interface JsonStorageType {
   filePath: string;
 
-  getAll: () => JsonDataType;
-  get: (key: string | number) => unknown | never;
+  getAll: () => Promise<JsonDataType>;
+  get: (key: string | number) => Promise<unknown | never>;
 
   set: (key: string | number, value: any) => Promise<void>;
 }
