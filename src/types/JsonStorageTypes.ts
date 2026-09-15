@@ -3,6 +3,8 @@ export interface JsonStorageType {
 
   getAll: () => JsonDataType;
   get: (key: string | number) => unknown | never;
+
+  set: (key: string | number, value: any) => Promise<void>;
 }
 
 export type JsonDataType = Record<string, unknown> | Array<unknown>;

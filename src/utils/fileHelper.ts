@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import nodePath from "node:path";
+import type { JsonDataType } from "../types/JsonStorageTypes.js";
 
 export const isFileExist = async (path: string): Promise<boolean> => {
   try {
@@ -48,4 +49,22 @@ export const readFile = async (path: string): Promise<string | null> => {
   const data = (await fs.readFile(path)).toString();
 
   return data;
+};
+
+export const saveJson = async (
+  path: string,
+  data: JsonDataType,
+): Promise<void> => {
+  const check = await isJson(path);
+  let localPath = path;
+
+  if (!check) {
+    const ext = nodePath.extname(path);
+    if (ext !== ".json") {
+      localPath = path + ".json";
+    }
+  }
+
+  const dataToWrite = JSON.stringify(data, null, 2);
+  await fs.writeFile(localPath, dataToWrite);
 };
