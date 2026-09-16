@@ -1,3 +1,9 @@
+import {
+  InvalidDataError,
+  InvalidFunctionError,
+  InvalidKeyError,
+  InvalidValueError,
+} from "../errors/StorageErrors.js";
 import type {
   JsonDataType,
   JsonStorageType,
@@ -26,12 +32,12 @@ export class JsonStorage implements JsonStorageType {
       await this.#dataCreator();
     }
     if (!["string", "number"].includes(typeof key)) {
-      throw new Error();
+      throw new InvalidKeyError();
     }
 
     if (Array.isArray(this.#data)) {
       if (!isIndex(key)) {
-        throw new Error();
+        throw new InvalidKeyError();
       }
 
       return this.#data[Number(key)];
@@ -81,12 +87,12 @@ export class JsonStorage implements JsonStorageType {
       await this.#dataCreator();
     }
     if (!["string", "number"].includes(typeof key)) {
-      throw new Error();
+      throw new InvalidKeyError();
     }
 
     if (Array.isArray(this.#data)) {
       if (!isIndex(key)) {
-        throw new Error();
+        throw new InvalidKeyError();
       }
 
       this.#data[Number(key)] = structuredClone(value);
@@ -114,7 +120,7 @@ export class JsonStorage implements JsonStorageType {
     if (each.length === 1) {
       if (Array.isArray(this.#data)) {
         if (!isIndex(rootKey)) {
-          throw new Error();
+          throw new InvalidKeyError();
         }
 
         this.#data[Number(rootKey)] = structuredClone(value);
@@ -203,7 +209,7 @@ export class JsonStorage implements JsonStorageType {
     const keyData = this.#getKeyExtract(key);
 
     if (typeof callback !== "function") {
-      throw new Error();
+      throw new InvalidFunctionError();
     }
 
     const input = await this.deepGet(keyData);
@@ -218,7 +224,7 @@ export class JsonStorage implements JsonStorageType {
     }
 
     if (!isObject(data) && !Array.isArray(data)) {
-      throw new Error("");
+      throw new InvalidDataError();
     }
 
     this.#data = structuredClone(data);
@@ -231,12 +237,12 @@ export class JsonStorage implements JsonStorageType {
     }
 
     if (!["string", "number"].includes(typeof key)) {
-      throw new Error();
+      throw new InvalidKeyError();
     }
 
     if (Array.isArray(this.#data)) {
       if (!isIndex(key)) {
-        throw new Error();
+        throw new InvalidKeyError();
       }
 
       this.#data = this.#data.filter((item, i: number) => i !== Number(key));
@@ -379,7 +385,7 @@ export class JsonStorage implements JsonStorageType {
 
   #getKeyExtract(key: string | number): string | never {
     if (!["string", "number"].includes(typeof key)) {
-      throw new Error();
+      throw new InvalidKeyError();
     }
 
     const keyData = typeof key === "number" ? key.toString() : key;
@@ -388,11 +394,11 @@ export class JsonStorage implements JsonStorageType {
 
   #setKeyExtract(key: string | number, value: unknown): string | never {
     if (!["string", "number"].includes(typeof key)) {
-      throw new Error();
+      throw new InvalidKeyError();
     }
 
     if (value === undefined) {
-      throw new Error();
+      throw new InvalidValueError();
     }
 
     const keyData = typeof key === "number" ? key.toString() : key;
