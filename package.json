@@ -1,7 +1,7 @@
 {
   "name": "@abdu-selam/smart-storage",
   "version": "1.1.1",
-  "description": "A simple and powerfull storage api that allow you to handle localStorage and sessionStorage easily.",
+  "description": "A TypeScript storage utility for managing browser localStorage, sessionStorage, and JSON files with a simple, consistent API.",
   "license": "MIT",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
