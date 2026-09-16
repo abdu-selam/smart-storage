@@ -16,6 +16,8 @@ export interface JsonStorageType {
   keys: () => Promise<Array<string | number>>;
   length: () => Promise<number | null>;
   has: (key: string | number) => Promise<boolean>;
+
+  isJson: () => Promise<boolean>;
 }
 
 export type JsonDataType = Record<string, unknown> | Array<unknown>;

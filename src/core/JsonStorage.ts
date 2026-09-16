@@ -9,7 +9,7 @@ import type {
   JsonStorageType,
   UpdateCallback,
 } from "../types/JsonStorageTypes.js";
-import { createJson, saveJson } from "../utils/fileHelper.js";
+import { createJson, isJson, saveJson } from "../utils/fileHelper.js";
 import { isIndex, isObject } from "../utils/helper.js";
 
 export class JsonStorage implements JsonStorageType {
@@ -373,6 +373,16 @@ export class JsonStorage implements JsonStorageType {
     }
 
     return key.includes(".");
+  }
+
+  static async isJson(filePath: string): Promise<boolean> {
+    const result = await isJson(filePath);
+    return result;
+  }
+
+  async isJson(): Promise<boolean> {
+    const result = await isJson(this.filePath);
+    return result;
   }
 
   async #dataCreator(): Promise<void> {
